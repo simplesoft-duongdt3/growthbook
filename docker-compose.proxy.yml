@@ -5,9 +5,10 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=password
-
+    volumes:
+      - mongodata:/data/db
   growthbook:
-    image: "growthbook/growthbook:latest"
+    image: "gb:0.0.1"
     ports:
       - "3000:3000"
       - "3100:3100"
@@ -37,3 +38,4 @@ services:
 
 volumes:
   uploads:
+  mongodata:

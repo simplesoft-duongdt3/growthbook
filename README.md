@@ -1,3 +1,6 @@
+docker build -t gb:0.0.1 .
+
+
 <p align="center"><a href="https://www.growthbook.io"><img src="https://cdn.growthbook.io/growthbook-logo@2x.png" width="400px" alt="GrowthBook - Open Source Feature Flagging and A/B Testing" /></a></p>
 <p align="center"><b>Open Source Feature Flagging and A/B Testing</b></p>
 <p align="center">

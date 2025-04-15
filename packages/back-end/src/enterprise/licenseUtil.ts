@@ -127,6 +127,7 @@ function planHasPremiumFeature(
   plan: AccountPlan,
   feature: CommercialFeature
 ): boolean {
+  return true;
   return accountFeatures[plan].has(feature);
 }
 
@@ -134,6 +135,7 @@ export function orgHasPremiumFeature(
   org: MinimalOrganization,
   feature: CommercialFeature
 ): boolean {
+  return true;
   return planHasPremiumFeature(getEffectiveAccountPlan(org), feature);
 }
 

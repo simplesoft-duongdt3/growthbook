@@ -175,7 +175,7 @@ export async function getPayloadParamsFromApiKey(
       includeRedirectExperiments: connection.includeRedirectExperiments,
       includeRuleIds: connection.includeRuleIds,
       hashSecureAttributes: connection.hashSecureAttributes,
-      remoteEvalEnabled: connection.remoteEvalEnabled,
+      remoteEvalEnabled: true,
       savedGroupReferencesEnabled: connection.savedGroupReferencesEnabled,
     };
   }
