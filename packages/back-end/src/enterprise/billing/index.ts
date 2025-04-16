@@ -84,19 +84,20 @@ export async function deletePaymentMethodById(
 export async function getUsageDataFromServer(
   organization: string
 ): Promise<OrganizationUsage> {
-  try {
-    const url = `${LICENSE_SERVER_URL}cdn/${organization}/usage`;
+  return UNLIMITED_USAGE;
+  // try {
+  //   const url = `${LICENSE_SERVER_URL}cdn/${organization}/usage`;
 
-    const usage = await callLicenseServer({ url, method: "GET" });
+  //   const usage = await callLicenseServer({ url, method: "GET" });
 
-    return {
-      ...usage,
-      cdn: { ...usage.cdn, lastUpdated: new Date(usage.cdn.lastUpdated) },
-    };
-  } catch (err) {
-    Sentry.captureException(err);
-    return UNLIMITED_USAGE;
-  }
+  //   return {
+  //     ...usage,
+  //     cdn: { ...usage.cdn, lastUpdated: new Date(usage.cdn.lastUpdated) },
+  //   };
+  // } catch (err) {
+  //   Sentry.captureException(err);
+  //   return UNLIMITED_USAGE;
+  // }
 }
 
 type StoredUsage = {

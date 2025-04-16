@@ -14,6 +14,7 @@ RUN \
 # Build the nodejs app
 FROM python:${PYTHON_MAJOR}-slim AS nodebuild
 ARG NODE_MAJOR
+ENV NODE_OPTIONS="--max-old-space-size=8000"
 WORKDIR /usr/local/src/app
 RUN apt-get update && \
   apt-get install -y wget gnupg2 build-essential && \

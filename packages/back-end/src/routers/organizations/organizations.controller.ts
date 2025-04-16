@@ -659,143 +659,147 @@ export async function getOrganization(
   req: AuthRequest,
   res: Response<GetOrganizationResponse | { status: 200; organization: null }>
 ) {
-  if (!req.organization) {
-    return res.status(200).json({
-      status: 200,
-      organization: null,
-    });
-  }
-  const context = getContextFromReq(req);
-  const { org, userId } = context;
-  const {
-    invites,
-    members,
-    ownerEmail,
-    demographicData,
-    name,
-    id,
-    url,
-    freeSeats,
-    settings,
-    disableSelfServeBilling,
-    licenseKey,
-    messages,
-    externalId,
-    setupEventTracker,
-  } = org;
-
-  let license: Partial<LicenseInterface> | null = null;
-  if (licenseKey || process.env.LICENSE_KEY) {
-    // automatically set the license data based on org license key
-    license = getLicense(licenseKey || process.env.LICENSE_KEY);
-    if (!license || (license.organizationId && license.organizationId !== id)) {
-      try {
-        license =
-          (await licenseInit(org, getUserCodesForOrg, getLicenseMetaData)) ||
-          null;
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error("setting license failed", e);
-      }
-    }
-  }
-
-  const filteredAttributes = settings?.attributeSchema?.filter((attribute) =>
-    context.permissions.canReadMultiProjectResource(attribute.projects)
-  );
-
-  const filteredEnvironments = settings?.environments?.filter((environment) =>
-    context.permissions.canReadMultiProjectResource(environment.projects)
-  );
-
-  // Use a stripped down list of invites if the user doesn't have permission to manage the team
-  // The full invite object contains a key which can be used to accept the invite
-  // Without this filtering, a user could accept an invite of a higher-priveleged user and assume their role
-  const filteredInvites = context.permissions.canManageTeam()
-    ? invites
-    : invites.map((i) => ({ email: i.email }));
-
-  // Some other global org data needed by the front-end
-  const apiKeys = await getAllApiKeysByOrganization(context);
-  const enterpriseSSO = isEnterpriseSSO(req.loginMethod)
-    ? getSSOConnectionSummary(req.loginMethod)
-    : null;
-
-  const expandedMembers = await expandOrgMembers(members, userId);
-
-  const teams = await getTeamsForOrganization(org.id);
-
-  const teamsWithMembers: TeamInterface[] = teams.map((team) => {
-    const memberIds = org.members
-      .filter((member) => member.teams?.includes(team.id))
-      .map((m) => m.id);
-    return {
-      ...team,
-      members: memberIds,
-    };
-  });
-
-  const currentUserPermissions = getUserPermissions(
-    req.currentUser,
-    org,
-    teams || []
-  );
-  const seatsInUse = getNumberOfUniqueMembersAndInvites(org);
-
-  const watch = await getWatchedByUser(org.id, userId);
-
-  const commercialFeatureLowestPlan = getLowestPlanPerFeature(accountFeatures);
-
   return res.status(200).json({
     status: 200,
-    apiKeys,
-    enterpriseSSO,
-    accountPlan: getAccountPlan(org),
-    effectiveAccountPlan: getEffectiveAccountPlan(org),
-    licenseError: getLicenseError(org),
-    commercialFeatures: [...accountFeatures[getEffectiveAccountPlan(org)]],
-    commercialFeatureLowestPlan: commercialFeatureLowestPlan,
-    roles: getRoles(org),
-    members: expandedMembers,
-    currentUserPermissions,
-    teams: teamsWithMembers,
-    license,
-    subscription: license ? getSubscriptionFromLicense(license) : null,
-    watching: {
-      experiments: watch?.experiments || [],
-      features: watch?.features || [],
-    },
-    organization: {
-      invites: filteredInvites as Invite[],
-      ownerEmail,
-      demographicData,
-      externalId,
-      name,
-      id,
-      url,
-      licenseKey,
-      freeSeats,
-      enterprise: org.enterprise,
-      disableSelfServeBilling,
-      freeTrialDate: org.freeTrialDate,
-      discountCode: org.discountCode || "",
-      customRoles: org.customRoles,
-      deactivatedRoles: org.deactivatedRoles,
-      settings: {
-        ...settings,
-        attributeSchema: filteredAttributes,
-        environments: filteredEnvironments,
-      },
-      autoApproveMembers: org.autoApproveMembers,
-      members: org.members,
-      messages: messages || [],
-      pendingMembers: org.pendingMembers,
-      getStartedChecklistItems: org.getStartedChecklistItems,
-      setupEventTracker,
-      dateCreated: org.dateCreated,
-    },
-    seatsInUse,
+    organization: null,
   });
+  // if (!req.organization) {
+  //   return res.status(200).json({
+  //     status: 200,
+  //     organization: null,
+  //   });
+  // }
+  // const context = getContextFromReq(req);
+  // const { org, userId } = context;
+  // const {
+  //   invites,
+  //   members,
+  //   ownerEmail,
+  //   demographicData,
+  //   name,
+  //   id,
+  //   url,
+  //   freeSeats,
+  //   settings,
+  //   disableSelfServeBilling,
+  //   licenseKey,
+  //   messages,
+  //   externalId,
+  //   setupEventTracker,
+  // } = org;
+
+  // let license: Partial<LicenseInterface> | null = null;
+  // if (licenseKey || process.env.LICENSE_KEY) {
+  //   // automatically set the license data based on org license key
+  //   license = getLicense(licenseKey || process.env.LICENSE_KEY);
+  //   if (!license || (license.organizationId && license.organizationId !== id)) {
+  //     try {
+  //       license =
+  //         (await licenseInit(org, getUserCodesForOrg, getLicenseMetaData)) ||
+  //         null;
+  //     } catch (e) {
+  //       // eslint-disable-next-line no-console
+  //       console.error("setting license failed", e);
+  //     }
+  //   }
+  // }
+
+  // const filteredAttributes = settings?.attributeSchema?.filter((attribute) =>
+  //   context.permissions.canReadMultiProjectResource(attribute.projects)
+  // );
+
+  // const filteredEnvironments = settings?.environments?.filter((environment) =>
+  //   context.permissions.canReadMultiProjectResource(environment.projects)
+  // );
+
+  // // Use a stripped down list of invites if the user doesn't have permission to manage the team
+  // // The full invite object contains a key which can be used to accept the invite
+  // // Without this filtering, a user could accept an invite of a higher-priveleged user and assume their role
+  // const filteredInvites = context.permissions.canManageTeam()
+  //   ? invites
+  //   : invites.map((i) => ({ email: i.email }));
+
+  // // Some other global org data needed by the front-end
+  // const apiKeys = await getAllApiKeysByOrganization(context);
+  // const enterpriseSSO = isEnterpriseSSO(req.loginMethod)
+  //   ? getSSOConnectionSummary(req.loginMethod)
+  //   : null;
+
+  // const expandedMembers = await expandOrgMembers(members, userId);
+
+  // const teams = await getTeamsForOrganization(org.id);
+
+  // const teamsWithMembers: TeamInterface[] = teams.map((team) => {
+  //   const memberIds = org.members
+  //     .filter((member) => member.teams?.includes(team.id))
+  //     .map((m) => m.id);
+  //   return {
+  //     ...team,
+  //     members: memberIds,
+  //   };
+  // });
+
+  // const currentUserPermissions = getUserPermissions(
+  //   req.currentUser,
+  //   org,
+  //   teams || []
+  // );
+  // const seatsInUse = getNumberOfUniqueMembersAndInvites(org);
+
+  // const watch = await getWatchedByUser(org.id, userId);
+
+  // const commercialFeatureLowestPlan = getLowestPlanPerFeature(accountFeatures);
+
+  // return res.status(200).json({
+  //   status: 200,
+  //   apiKeys,
+  //   enterpriseSSO,
+  //   accountPlan: getAccountPlan(org),
+  //   effectiveAccountPlan: getEffectiveAccountPlan(org),
+  //   licenseError: getLicenseError(org),
+  //   commercialFeatures: [...accountFeatures[getEffectiveAccountPlan(org)]],
+  //   commercialFeatureLowestPlan: commercialFeatureLowestPlan,
+  //   roles: getRoles(org),
+  //   members: expandedMembers,
+  //   currentUserPermissions,
+  //   teams: teamsWithMembers,
+  //   license,
+  //   subscription: license ? getSubscriptionFromLicense(license) : null,
+  //   watching: {
+  //     experiments: watch?.experiments || [],
+  //     features: watch?.features || [],
+  //   },
+  //   organization: {
+  //     invites: filteredInvites as Invite[],
+  //     ownerEmail,
+  //     demographicData,
+  //     externalId,
+  //     name,
+  //     id,
+  //     url,
+  //     licenseKey,
+  //     freeSeats,
+  //     enterprise: org.enterprise,
+  //     disableSelfServeBilling,
+  //     freeTrialDate: org.freeTrialDate,
+  //     discountCode: org.discountCode || "",
+  //     customRoles: org.customRoles,
+  //     deactivatedRoles: org.deactivatedRoles,
+  //     settings: {
+  //       ...settings,
+  //       attributeSchema: filteredAttributes,
+  //       environments: filteredEnvironments,
+  //     },
+  //     autoApproveMembers: org.autoApproveMembers,
+  //     members: org.members,
+  //     messages: messages || [],
+  //     pendingMembers: org.pendingMembers,
+  //     getStartedChecklistItems: org.getStartedChecklistItems,
+  //     setupEventTracker,
+  //     dateCreated: org.dateCreated,
+  //   },
+  //   seatsInUse,
+  // });
 }
 
 export async function getNamespaces(req: AuthRequest, res: Response) {
@@ -1112,53 +1116,53 @@ export async function postInvite(
   >,
   res: Response
 ) {
-  const context = getContextFromReq(req);
+  // const context = getContextFromReq(req);
 
-  if (!context.permissions.canManageTeam()) {
-    context.permissions.throwPermissionError();
-  }
+  // if (!context.permissions.canManageTeam()) {
+  //   context.permissions.throwPermissionError();
+  // }
 
-  const { org } = context;
-  const {
-    email,
-    role,
-    limitAccessByEnvironment,
-    environments,
-    projectRoles,
-  } = req.body;
+  // const { org } = context;
+  // const {
+  //   email,
+  //   role,
+  //   limitAccessByEnvironment,
+  //   environments,
+  //   projectRoles,
+  // } = req.body;
 
-  // Make sure role is valid
-  if (!isRoleValid(role, org) || !areProjectRolesValid(projectRoles, org)) {
-    return res.status(400).json({
-      status: 400,
-      message: "Invalid role",
-    });
-  }
+  // // Make sure role is valid
+  // if (!isRoleValid(role, org) || !areProjectRolesValid(projectRoles, org)) {
+  //   return res.status(400).json({
+  //     status: 400,
+  //     message: "Invalid role",
+  //   });
+  // }
 
-  const license = getLicense();
-  if (
-    license &&
-    license.hardCap &&
-    getNumberOfUniqueMembersAndInvites(org) >= (license.seats || 0)
-  ) {
-    throw new Error(
-      "Whoops! You've reached the seat limit on your license. Please contact sales@growthbook.io to increase your seat limit."
-    );
-  }
+  // const license = getLicense();
+  // if (
+  //   license &&
+  //   license.hardCap &&
+  //   getNumberOfUniqueMembersAndInvites(org) >= (license.seats || 0)
+  // ) {
+  //   throw new Error(
+  //     "Whoops! You've reached the seat limit on your license. Please contact sales@growthbook.io to increase your seat limit."
+  //   );
+  // }
 
-  const { emailSent, inviteUrl } = await inviteUser({
-    organization: org,
-    email,
-    role,
-    limitAccessByEnvironment,
-    environments,
-    projectRoles,
-  });
+  // const { emailSent, inviteUrl } = await inviteUser({
+  //   organization: org,
+  //   email,
+  //   role,
+  //   limitAccessByEnvironment,
+  //   environments,
+  //   projectRoles,
+  // });
 
   return res.status(200).json({
     status: 200,
-    inviteUrl,
-    emailSent,
+    inviteUrl: "",
+    emailSent: "",
   });
 }
 
@@ -1847,78 +1851,6 @@ export async function addOrphanedUser(
   req: AuthRequest<MemberRoleWithProjects, { id: string }>,
   res: Response
 ) {
-  const context = getContextFromReq(req);
-
-  if (!context.permissions.canManageOrgSettings()) {
-    context.permissions.throwPermissionError();
-  }
-
-  if (IS_CLOUD) {
-    throw new Error("This action is not permitted on GrowthBook Cloud");
-  }
-
-  if (IS_MULTI_ORG && !req.superAdmin) {
-    throw new Error(
-      "Only super admins can add orphaned users on multi-org deployments"
-    );
-  }
-
-  const { org } = getContextFromReq(req);
-
-  const { id } = req.params;
-  const {
-    role,
-    environments,
-    limitAccessByEnvironment,
-    projectRoles,
-  } = req.body;
-
-  // Make sure user exists
-  const user = await getUserById(id);
-  if (!user) {
-    return res.status(400).json({
-      status: 400,
-      message: "Cannot find user with that id",
-    });
-  }
-
-  // Make sure user is actually orphaned
-  const orgs = await findOrganizationsByMemberId(id);
-  if (orgs.length) {
-    return res.status(400).json({
-      status: 400,
-      message: "Cannot add users who are already part of an organization",
-    });
-  }
-
-  // Make sure role is valid
-  if (!isRoleValid(role, org) || !areProjectRolesValid(projectRoles, org)) {
-    return res.status(400).json({
-      status: 400,
-      message: "Invalid role",
-    });
-  }
-
-  const license = getLicense();
-  if (
-    license &&
-    license.hardCap &&
-    getNumberOfUniqueMembersAndInvites(org) >= (license.seats || 0)
-  ) {
-    throw new Error(
-      "Whoops! You've reached the seat limit on your license. Please contact sales@growthbook.io to increase your seat limit."
-    );
-  }
-
-  await addMemberToOrg({
-    organization: org,
-    userId: id,
-    role,
-    environments,
-    limitAccessByEnvironment,
-    projectRoles,
-  });
-
   return res.status(200).json({
     status: 200,
   });
